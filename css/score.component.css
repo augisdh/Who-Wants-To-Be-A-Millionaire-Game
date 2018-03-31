@@ -1,0 +1,23 @@
+.scoreMoneyList {
+    display: flex;
+    flex-direction: column-reverse;
+    list-style: none;
+    padding: 0;
+    color: #fff;
+    font-size: 18px;
+    height: auto;
+}
+
+.scoreListWon {
+    background-color: gold;
+    color: #000;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.moneyWon {
+    font-weight: 600;
+    background-color: lightgreen;
+    color: #000;
+    border-radius: 5px;
+}

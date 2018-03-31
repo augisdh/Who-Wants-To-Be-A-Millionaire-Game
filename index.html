@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <head>
+            <meta charset="utf-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Who Wants To Be A Millionaire</title>
+            <link rel="stylesheet" href="css/normalize.css">
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+            <link rel="stylesheet" href="css/style.css">
+            <link rel="shortcut icon" href="bodyImages/money.ico">
+            <link rel="stylesheet" href="css/score.component.css">
+        </head>
+    </head>
+    <body>
+
+        <div id="millgame">
+            <div class="bgImageIntro" alt="millionIntroBgImage" v-if="currentView == 'intro' || currentView == 'gameOver' || currentView == 'gameWon' || currentView == 'cashOut'"></div>
+
+            <transition name="fade" mode="out-in">
+                <div class="fadeback" v-if="feedBackVisable" key="message" v-bind:class="feedBackClass">
+                        <audio autoplay>
+                                <source v-if="playAudioWrong === true" src="sounds/wrongAnswer.mp3" type="audio/mpeg">
+                                <source v-if="playAudioCorrect === true" src="sounds/correctAnswer.mp3" type="audio/mpeg">
+                                <source v-if="playAudioStart === true" src="sounds/letsPlay.mp3" type="audio/mpeg">
+                        </audio>
+                    {{feedBackMessage}}
+                </div>
+
+                <div v-else key="millgame">
+                    <div class="container">
+                        <div class="introPage text-center" v-if="currentView == 'intro'">
+                            <h1 class="mt-5 mb-3 text-white">WELCOME</h1>
+                            <img class="millLogo float-center" src="bodyImages/millionaireIntroLogo.png" alt="millgameLogo">
+                            <h2 class="mt-3 mb-5 text-white">
+                                Answer all 15 questions to become new millionaire!
+                            </h2>
+                            <button type="button" class="btn btn-outline-primary btn-lg" @click="playGame">I'm ready</button>
+                        </div>
+
+                        <div v-if="currentView == 'gameplay'">
+                            <div class="row questionDiv mb-5">
+                                <div class="col-8 mr-5">
+                                    <h1 class="text-white">{{currentQuestion.question}}</h1>
+                                    <img class="questionImage mt-3" v-bind:src="currentQuestion.codeImage" v-bind:alt="currentQuestion.alt">
+
+                                    <ul class="collum answers mt-3">
+                                        <li class="col-sm" v-for="(answer, index) in currentQuestion.answers">
+                                            <button type="button" class="mt-3 btn" @click="userAnswer = index" v-bind:class="{'btn-success': userAnswer === index, 'btn-info': userAnswer === null}">{{answer}}</button>
+                                        </li>
+                                    </ul>
+
+                                    <div class="row d-flex justify-content-center mb-3">
+                                        <div class="continueBtn" v-if="userAnswer !== null">
+                                            <button type="button" class="btn btn-primary btn-lg mr-3" @click="sumbitAnswer">Confirm</button>
+                                        </div>
+
+                                        <div class="leaveBtn" v-if="level !== 0">
+                                            <button type="button" class="btn btn-warning btn-lg" @click="collectMoneyWon">Collect Money</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-3 text-center scoreListDiv">
+                                    <button class="fiftyBtn btn btn-info mt-3" data-toggle="modal" data-target="#fiftyBtnModal" v-bind:disabled="fiftyPressed === true">
+                                        <img src="bodyImages/50-50.png" alt="fiftyButton">
+                                    </button>
+                                    <button class="callBtn btn btn-info mt-3" data-toggle="modal" data-target="#callBtnModal" v-bind:disabled="callPressed === true">
+                                        <img src="bodyImages/phone.png" alt="callFriend">
+                                    </button>
+                                    <button class="audienceBtn btn btn-info mt-3" data-toggle="modal" data-target="#audienceBtnModal" v-bind:disabled="audiencePressed === true">
+                                        <img src="bodyImages/audience.png" alt="audienceHelp">
+                                    </button>
+                                    <score class="mt-3" v-bind:current-level="level"></score>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div v-if="currentView == 'gameWon'">
+                            <div class="text-center">
+                                <img class="millLogo float-center mt-5" src="bodyImages/millionaireIntroLogo.png" alt="millgameLogo">
+                                <h1 class="text-white mt-3">
+                                    YOU WON MILLION!
+                                </h1>
+                                <img class="float-center mt-3" src="bodyImages/lamb.gif" alt="lambGif">
+                            </div>
+                        </div>
+
+                        <div v-if="currentView == 'gameOver'">
+                            <div class="collum text-center">
+                                <img class="millLogo float-center mt-5" src="bodyImages/millionaireIntroLogo.png" alt="millgameLogo">
+                                <h1 class="text-white mt-3">
+                                    GAME OVER! <br>
+                                    Correct answer was: {{currentQuestion.answers[currentQuestion.correct]}}
+                                </h1>
+                                
+                                <div class="row d-flex justify-content-center">
+                                    <div>
+                                        <button type="button" class="btn btn-primary btn-lg mt-3 mr-3" @click="playGame">
+                                            Play Again
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="btn btn-danger btn-lg mt-3" @click="leaveGame">
+                                            Leave Game
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="currentView == 'cashOut'">
+                            <div class="text-center">
+                                <img class="millLogo float-center mt-5" src="bodyImages/millionaireIntroLogo.png" alt="millgameLogo">
+                                <h1 class="text-white mt-3">
+                                    YOU WON ${{scoreList[level-1]}}!
+                                </h1>
+                                <img class="float-center mt-3" src="bodyImages/corollaJdm.gif" alt="corollaJdmGif">
+                            </div>
+                        </div>
+
+                    </div> 
+                </div>
+            </transition>
+
+            <!-- Modal pop-up 50/50 button -->
+            <div class="modal fade" id="fiftyBtnModal" tabindex="-1" role="dialog" aria-labelledby="fiftyModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="fiftyModalLabel">Removes Two Wrong Questions</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <strong>You can use 50/50 help only once</strong>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-center">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">I don't want to use it</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" @click="removeTwoWrongQuestions">I need help, use 50/50</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal pop-up CALL button -->
+            <div class="modal fade" id="callBtnModal" tabindex="-1" role="dialog" aria-labelledby="callModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="callModalLabel">Friend will suggest correct answer</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <strong>You can use "call a friend" help only once</strong>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-center">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">I don't want to use it</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" data-toggle="modal" data-target="#callBtnAnswerModal" @click="callFriendHelp">I need help, call friend</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal pop-up CALL button answer CONFIRM-->
+            <div class="modal fade" id="callBtnAnswerModal" tabindex="-1" role="dialog" aria-labelledby="callModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="callModalLabel">Friend Says</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <strong>{{callSays}}</strong>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-center">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Ignore Advice</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" @click="sumbitAnswer">Take Friends Advice</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal pop-up AUDIENCE button -->
+            <div class="modal fade" id="audienceBtnModal" tabindex="-1" role="dialog" aria-labelledby="audienceModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="audienceModalLabel">Audience will suggest correct answer</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <strong>You can use audience help only once</strong>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-center">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">I don't want to use it</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" data-toggle="modal" data-target="#audienceBtnAnswerModal" @click="audienceHelp">I need help, AUDIENCE</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal pop-up AUDIENCE button answer CONFIRM-->
+            <div class="modal fade" id="audienceBtnAnswerModal" tabindex="-1" role="dialog" aria-labelledby="audienceModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="audienceModalLabel">Audience Says</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <strong>{{audienceSays}}</strong>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-center">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Ignore Advice</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" @click="sumbitAnswer">Take Audience Advice</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.5.14/dist/vue.js"></script>
+        <script src="js/script.js"></script>
+        <script src="js/score.component.js"></script>
+    </body>
+</html>
